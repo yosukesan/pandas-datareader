@@ -38,6 +38,7 @@ from pandas_datareader.yahoo.components import _get_data as get_components_yahoo
 from pandas_datareader.yahoo.daily import YahooDailyReader
 from pandas_datareader.yahoo.options import Options as YahooOptions
 from pandas_datareader.yahoo.quotes import YahooQuotesReader
+from pandas_datareader.tokyo_stock_exchange.data_catalogue import TSEReader
 
 __all__ = [
     "get_components_yahoo",
@@ -60,6 +61,7 @@ __all__ = [
     "get_iex_book",
     "get_dailysummary_iex",
     "get_data_stooq",
+    "get_data_tse",
     "DataReader",
 ]
 
@@ -70,6 +72,10 @@ def get_data_alphavantage(*args, **kwargs):
 
 def get_data_fred(*args, **kwargs):
     return FredReader(*args, **kwargs).read()
+
+
+def get_data_tse(*args, **kwargs):
+    return TSEReader(*args, **kwargs).read()
 
 
 def get_data_famafrench(*args, **kwargs):
@@ -347,6 +353,7 @@ def DataReader(
         "quandl",
         "moex",
         "tiingo",
+        "tse",
         "yahoo-actions",
         "yahoo-dividends",
         "av-forex",
@@ -447,6 +454,16 @@ def DataReader(
 
     elif data_source == "fred":
         return FredReader(
+            symbols=name,
+            start=start,
+            end=end,
+            retry_count=retry_count,
+            pause=pause,
+            session=session,
+        ).read()
+
+    elif data_source == "tse":
+        return TSEReader(
             symbols=name,
             start=start,
             end=end,
