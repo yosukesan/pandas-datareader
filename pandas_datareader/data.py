@@ -38,7 +38,7 @@ from pandas_datareader.yahoo.components import _get_data as get_components_yahoo
 from pandas_datareader.yahoo.daily import YahooDailyReader
 from pandas_datareader.yahoo.options import Options as YahooOptions
 from pandas_datareader.yahoo.quotes import YahooQuotesReader
-from pandas_datareader.tokyo_stock_exchange.data_catalogue import TSEReader
+from pandas_datareader.tokyo_stock_exchange.main import TSEReader
 
 __all__ = [
     "get_components_yahoo",

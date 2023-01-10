@@ -8,10 +8,12 @@ class _TSEShortRatio(object):
     def __init__(self):
         pass
 
-    def get_url_of_xls_files(self, BASE_URL, URLS) -> list:
+    def get_url_of_xls_files(self) -> list:
 
         ses = requests.Session()
-        resp = ses.get(URLS['short_ratio'], timeout=6)
+        BASE_URL = 'https://www.jpx.co.jp'
+        URL = '{0}/markets/public/short-selling/index.html'.format(BASE_URL)
+        resp = ses.get(URL, timeout=6)
         resp.encoding = resp.apparent_encoding
         
         url_chars = '[0-9a-zA-Z\/\-\_]*'
@@ -30,38 +32,43 @@ class _TSEShortRatio(object):
        
         return list(map(lambda x: '{0}{1}'.format(BASE_URL, x), urls_xls)) 
 
-    @staticmethod
-    def get_short_ratio(self) -> dict:
+    def filter_xls_url_by_period(self, urls_xls: list, start: datetime, end: datetime):
+
+        hm = {}
+        pattern = re.compile('\d{8}_')
+
+        for j in urls_xls:
+            res = re.search(pattern, j)
+            date = datetime.strptime(res.group()[:-1], '%Y%m%d')
+            hm[date] = j
+
+        new_urls_xls = []
+        for d in hm.keys():  
+            if start <= d and d <= end:
+                new_urls_xls.append(hm[d])
+
+        return new_urls_xls
+
+    def get(self, start: datetime, end: datetime) -> dict:
 
         sr = _TSEShortRatio()
 
-        urls_xls = sr.get_url_of_xls_files(self.BASE_URL, self.URLS)
+        urls_xls = sr.get_url_of_xls_files()
+        urls_xls = sr.filter_xls_url_by_period(urls_xls, start, end)
 
         if len(urls_xls) == 0:
-            raise ValueError('URL(s) of .xls files cannot be found. urls_xls has length of 0. Check start and end'.format(urls_xls))
-
-        LABELS = {'Date of Calculation',
-        'Code of Stock',
-        'Name of Stock (Japanese)',
-        'Name of Stock (English)',
-        'Name of Short Seller',
-        'Address of Short Seller',
-        'Name of Discretionary Investment Contractor',
-        'Address of Discretionary Investment Contractor',
-        'Name of Investment Fund	Ratio of Short Positions to Shares Outstanding',
-        'Number of Short Positions in Shares',
-        'Number of Short Positions in Trading Units',
-        'Date of Calculation in Previous Reporting',
-        'Ratio of Short Positions in Previous Reporting',
-        'Notes'}
+            raise ValueError('URL(s) of .xls files cannot be found. urls_xls has length of 0. Check start and end')
 
         ses = requests.Session()
         res = DataFrame()
         buf = DataFrame()
 
+        print('Getting...')
         for u in urls_xls:
-            print('getting {0}'.format(u))
+            print(u)
             resp = ses.get(u, timeout=3)
+
+            # Shift-JIS to UTF-8
             resp.encoding = resp.apparent_encoding
         
             buf = read_excel(resp.content, skiprows=7, usecols='B:P')
